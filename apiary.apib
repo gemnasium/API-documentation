@@ -104,8 +104,7 @@ Create a project
 
         { "name": "API_project", "slug": "randomly_generated_slug", "remaining_slot_count": 100 }
 
-## PUT /projects/{slug}
-**[NOT AVAILABLE]**
+## PATCH /projects/{slug}
 
 Update a project
 
@@ -127,12 +126,14 @@ It is possible to update the name, the description or the monitored attribute. A
 + Response 200
 
         {
-            "id": 1,
-            "name: "New_project_name",
-            "description": "New description"
-            "origin": "offline",
+            "slug": "gemnasium/API_project",
+            "name: "API_project",
+            "description": "This is a brief description of a project on Gemnasium"
+            "origin": "github",
+            "private": false,
             "color": "green",
-            "monitored": false
+            "monitored": true,
+            "unmonitored_reason": ""
         }
 
 ## DELETE /projects/{slug}
