@@ -165,8 +165,8 @@ List the dependency files of a project
 + Response 200 (application/json)
 
         [
-            { "id": "1", "name": "Gemfile", "content": "Gemfile content" },
-            { "id": "2", "name": "Gemfile.lock", "content": "Gemfile.lock content" }
+            { "id": "1", "name": "Gemfile", "content": "Gemfile content", "sha": "Gemfile SHA-1" },
+            { "id": "2", "name": "Gemfile.lock", "content": "Gemfile.lock content", "sha": "Gemfile.lock SHA-1" }
         ]
 
 ## POST /project/{slug}/dependency_files
