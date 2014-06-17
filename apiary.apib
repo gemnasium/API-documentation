@@ -165,32 +165,34 @@ List the dependency files of a project
 + Response 200 (application/json)
 
         [
-            { "id": "1", "name": "Gemfile", "content": "Gemfile content", "sha": "Gemfile SHA-1" },
-            { "id": "2", "name": "Gemfile.lock", "content": "Gemfile.lock content", "sha": "Gemfile.lock SHA-1" }
+            { "id": "1", "path": "Gemfile", "content": "Gemfile content", "sha": "Gemfile SHA-1" },
+            { "id": "2", "path": "Gemfile.lock", "content": "Gemfile.lock content", "sha": "Gemfile.lock SHA-1" }
         ]
 
 ## POST /project/{slug}/dependency_files
 
 Add dependency files to an existing project, or update existing ones.  
-If a dependency file with the same name already exists, its content will be updated.
+If a dependency file with the same path already exists, its content will be updated.
 
-The request contains an array of dependency files where each file has a `name` and a `content`. The parsing of a dependency file depends on its name (ie. the `Gemfile` name implies this is a Ruby Bundler dependency file, etc.).
+The request contains an array of dependency files where each file has a `path` and a `content`.  
+The path of a dependency file is relative to its project directory. The parsing of a dependency file depends on its path (ie. the path `Gemfile` implies this is a Ruby Bundler dependency file, etc.).
 
 **The files content must be base64 encoded.**
 
 + Request (application/json)
 
         [
-            { "name": "Gemfile", "content": "Gemfile content" },
-            { "name": "Gemfile.lock", "content": "Gemfile.lock content" },
+            { "path": "Gemfile", "content": "Gemfile content" },
+            { "path": "Gemfile.lock", "content": "Gemfile.lock content" },
         ]
 
 + Response 200 (application/json)
 
         {
-            "added": [{ "id": "1", "name": "Gemfile", "content": "Gemfile content", "sha": "Gemfile SHA-1" }],
-            "updated": [{ "id": "2", "name": "Gemfile.lock", "content": "Gemfile.lock content", "sha": "Gemfile.lock SHA-1" }],
-            "rejected": ["picture.jpg"]
+            "added": [{ "id": "1", "path": "Gemfile", "content": "Gemfile content", "sha": "Gemfile SHA-1" }],
+            "updated": [{ "id": "2", "path": "Gemfile.lock", "content": "Gemfile.lock content", "sha": "Gemfile.lock SHA-1" }],
+            "unchanged": [],
+            "unsupported": ["picture.jpg"]
         }
 
 ## DELETE /projects/{slug}/dependency_files/{dependency_file-id}
