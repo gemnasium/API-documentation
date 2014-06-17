@@ -5,8 +5,6 @@ HOST: https://api.gemnasium.com/
 
 Gemnasium API lets you interract with your Gemnasium projects and more.
 
-This API is still in development. Most of the API endpoints are already available but the endpoints having the **[NOT AVAILABLE]** tag will be released later on.
-
 ## API versioning
 
 Gemnasium API is versioned by appending the version number at the end of the root URL (ie: https://api.gemnasium.com/v1).
@@ -136,15 +134,6 @@ It is possible to update the name, the description or the monitored attribute. A
             "unmonitored_reason": ""
         }
 
-## DELETE /projects/{slug}
-**[NOT AVAILABLE]**
-
-Destroy a project
-
-Warning! There is no way to restore a project once it has been destroyed!
-
-+ Response 204
-
 ## POST /projects/{slug}/sync
 
 Start project synchronization
@@ -264,33 +253,9 @@ List the dependency alerts the given project is affected by
             }
         ]
 
-## PUT /projects/{slug}/alerts/{alert-id}
-**[NOT AVAILABLE]**
-
-Update the alert status
-
-The new status can either be:
-
-* `open` if the issue still applies and the user wants to be notified about it
-* `acknowledged` if the issue applies but the user does not want to be notified
-* `closed` if the issue does not apply to the project or if it has been worked around
-
-+ Request (application/json)
-
-        {
-            "status": "closed"
-        }
-
-+ Response 200
-
-        {
-            "id": 1,
-            "status": "closed"
-        }
-
 # Group Live evaluation
 
-**This endpoint is reserved for Gold members only**
+**Those endpoints are reserved for Gold members only**
 
 The Gemnasium API is able to parse a set of dependency files without creating any project.
 
@@ -392,108 +357,3 @@ When completed, the job has a result that includes:
                     }
                 ]
             }
-
-# Group Packages
-
-A package is a reusable library a project depends on.
-
-Each package has:
-
-* a `name` relative to the package type
-* a `type` that relates to a package repository
-* a unique `slug` that embeds the package type and the package name
-
-Supported package types:
-
-* rubygem
-* packagist
-* pypi
-* npm
-
-## GET /{package-type}
-**[NOT AVAILABLE]**
-
-List the packages of a give type
-
-Supported values for package types are:
-
-* `gems` for Rubygems hosted on [Rubygems.org](https://rubygems.org/)
-* `npms` for Node.js packages registered on [npmjs.org](https://www.npmjs.org/)
-* `pypi` for Python packages hosted on [Pypi](https://pypi.python.org/pypi)
-* `packagist` for PHP Composer packages hosted on [Packagist.org](https://packagist.org/)
-
-+ Parameters
-    + package-type (string) ... Type of package
-
-+ Response 200 (application/json)
-
-        [
-            { "name": "rails",  "type": "rubygem", "slug": "gems/rails", "description": "Rails description", "latest": "4.0.0" },
-            { "name": "rspec",  "type": "rubygem", "slug": "gems/rspec", "description": "Rspec description", "latest": "2.14.1" }
-        ]
-
-## GET /{package-slug}
-**[NOT AVAILABLE]**
-
-Return the details of a package
-
-+ Response 200 (application/json)
-
-        {
-            "name": "rails",
-            "type": "rubygem",
-            "slug": "gems/rails", 
-            "description": "Ruby On Rails Framework",
-            "versions": ["0.0.1", "1.0.0", "2.0.1"]
-        }
-
-## GET /{package-slug}/versions/{version-number}
-**[NOT AVAILABLE]**
-
-Get the detail of a package version
-
-+ Parameters
-    + package-slug (string) ... Slug of a package (cf: package-slug definition above)
-    + version-number (string) ... Published version of a package
-
-+ Response 200 (application/json)
-
-        {
-            "package": {
-                "name": "rails",
-                "type": "rubygem",
-                "slug": "gems/rails", 
-                "description": "Ruby On Rails Framework"
-            },
-            "version": "3.12.1", 
-            "changelog": "Changelog of requested version",
-            "dependencies": [
-                { "name": "actionmailer", "requirement": "= 3.12.1", "color": "yellow" },
-                { "name": "actionsupport", "requirement": "= 3.12.1", "color": "red" },
-            ]
-        }
-
-# Group Security advisories
-
-## GET /advisories/{advisory-id}
-**[NOT AVAILABLE]**
-
-Return the details of a security advisory
-
-+ Response 200 (application/json)
-
-        {
-            "title": "XSS vulnerability",
-            "identifier": "CVE-20130221",
-            "description": "Advisory description",
-            "solution": "Advisory solution",
-            "affected_versions": "1.4.x",
-            "package": {
-                "name": "rails",
-                "type": "rubygem",
-                "slug": "gems/rails"
-            },
-            "cured_versions": "2.0.0",
-            "credits": "",
-            "links": ["http://google.com"]
-        }
