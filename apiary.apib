@@ -5,6 +5,10 @@ HOST: https://api.gemnasium.com/
 
 Gemnasium API lets you interract with your Gemnasium projects and more.
 
+## API client
+
+Gemnasium provides a client binary to easily communicate with the API. Read more on https://github.com/gemnasium/toolbelt#readme
+
 ## API versioning
 
 Gemnasium API is versioned by appending the version number at the end of the root URL (ie: https://api.gemnasium.com/v1).
@@ -357,3 +361,68 @@ When completed, the job has a result that includes:
                     }
                 ]
             }
+
+# Group Auto update
+
+*This feature is currently in beta and only available for eligible projects.*
+
+A Gemnasium project can be automatically tested against dependencies updates once the feature has been enabled.
+
+## POST /projects/{slug}/branches/{branch_name}/update_sets/next
+
+Return the next update_set available for the given project, on a given branch and for a specific commit. An update set is a combination of dependencies to be updated simulteanously.
+
++ Parameters
+    + revision (required, string) ... Current revision identifier.
+
+
++ Request (application/json)
+
+        { "revision": "e4a87ac551ce8e02e314eebd3cf00a436a4cb73f" }
+
++ Response 200 (application/json)
+
+        {
+            "id":1,
+            "requirement_updates": [
+                {
+                    "file": {
+                        "path":"Gemfile",
+                        "sha1":"dc6bdc865c85a4f5c6ef0f4ba8909d8652fd8cd0"
+                    },
+                    "patch": "--- Gemfile\n+++ Gemfile\n@@ -4 +4 @@\n-gem \"rails\", \"3.0.0.beta3\"\n+gem \"rails\", '~> 4.0.3'\n@@ -5 +5 @@\n-gem \"warden\", \"0.10.3\"\n+gem \"warden\", '~> 1.2.3'\n@@ -7 +7 @@\n-gem \"webrat\", \"0.7\"\n+gem \"webrat\", '~> 0.7.3'\n"
+                }
+            ],
+            "version_updates": [
+                {
+                    "package": {
+                        "type": "Rubygem",
+                        "name": "twitter-bootstrap-rails"
+                    },
+                    "old_version": "2.2.8",
+                    "target_version": "2.2.8"
+                },
+                {
+                    "package": {
+                        "type": "Rubygem",
+                        "name": "sqlite3"
+                    },
+                    "old_version": "1.3.8",
+                    "target_version": "1.3.9"
+                }
+            ]
+        }
+
+## PATCH /projects/{slug}/branches/{branch_name}/update_sets/{id}
+Update an update set with test result.
+
++ Parameters
+    + state (required, string) ... Tests execution result. Accepted values are `succeeded` and `failed`.
+
++ Request (application/json)
+
+        {
+            "state": "succeeded"
+        }
+
++ Response 200 (application/json)
