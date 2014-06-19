@@ -399,14 +399,16 @@ Return the next update_set available for the given project, on a given branch an
                         "type": "Rubygem",
                         "name": "twitter-bootstrap-rails"
                     },
+                    "old_requirement": "~> 2.1",
                     "old_version": "2.2.8",
-                    "target_version": "2.2.8"
+                    "target_version": "2.3.1"
                 },
                 {
                     "package": {
                         "type": "Rubygem",
                         "name": "sqlite3"
                     },
+                    "old_requirement": "~> 1.3.2",
                     "old_version": "1.3.8",
                     "target_version": "1.3.9"
                 }
@@ -424,10 +426,10 @@ Update an update set with test result.
         {
             "state": "succeeded",
                 "dependency_files": [
-                {
-                    "path": "Gemfile.lock",
-                    "content": "__base64_encoded_content__"
-                }
+                    {
+                        "path": "Gemfile.lock",
+                        "content": "__base64_encoded_content__"
+                    }
             ]
         }
 
