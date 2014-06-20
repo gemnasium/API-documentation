@@ -384,52 +384,57 @@ Return the next update_set available for the given project, on a given branch an
 
         {
             "id":1,
-            "requirement_updates": [
-                {
-                    "file": {
-                        "path":"Gemfile",
-                        "sha":"dc6bdc865c85a4f5c6ef0f4ba8909d8652fd8cd0"
-                    },
-                    "patch": "--- Gemfile\n+++ Gemfile\n@@ -4 +4 @@\n-gem \"rails\", \"3.0.0.beta3\"\n+gem \"rails\", '~> 4.0.3'\n@@ -5 +5 @@\n-gem \"warden\", \"0.10.3\"\n+gem \"warden\", '~> 1.2.3'\n@@ -7 +7 @@\n-gem \"webrat\", \"0.7\"\n+gem \"webrat\", '~> 0.7.3'\n"
-                }
-            ],
-            "version_updates": [
-                {
-                    "package": {
-                        "type": "Rubygem",
-                        "name": "twitter-bootstrap-rails"
-                    },
-                    "old_requirement": "~> 2.1",
-                    "old_version": "2.2.8",
-                    "target_version": "2.3.1"
-                },
-                {
-                    "package": {
-                        "type": "Rubygem",
-                        "name": "sqlite3"
-                    },
-                    "old_requirement": "~> 1.3.2",
-                    "old_version": "1.3.8",
-                    "target_version": "1.3.9"
-                }
-            ]
+            "requirement_updates": {
+                "Rubygem" : [
+                    {
+                        "file": {
+                            "path":"Gemfile",
+                            "sha":"dc6bdc865c85a4f5c6ef0f4ba8909d8652fd8cd0"
+                        },
+                        "patch": "--- Gemfile\n+++ Gemfile\n@@ -4 +4 @@\n-gem \"rails\", \"3.0.0.beta3\"\n+gem \"rails\", '~> 4.0.3'\n@@ -5 +5 @@\n-gem \"warden\", \"0.10.3\"\n+gem \"warden\", '~> 1.2.3'\n@@ -7 +7 @@\n-gem \"webrat\", \"0.7\"\n+gem \"webrat\", '~> 0.7.3'\n"
+                    }
+                ]
+            },
+            "version_updates": {
+                "Rubygem" : [
+                  {
+                      "package": {
+                          "type": "Rubygem",
+                          "name": "twitter-bootstrap-rails"
+                      },
+                      "old_requirement": "~> 2.1",
+                      "old_version": "2.2.8",
+                      "target_version": "2.3.1"
+                  },
+                  {
+                      "package": {
+                          "type": "Rubygem",
+                          "name": "sqlite3"
+                      },
+                      "old_requirement": "~> 1.3.2",
+                      "old_version": "1.3.8",
+                      "target_version": "1.3.9"
+                  }
+              ]
+            }
         }
 
 ## PATCH /projects/{slug}/branches/{branch_name}/update_sets/{id}
 Update an update set with test result.
 
 + Parameters
-    + state (required, string) ... Tests execution result. Accepted values are `succeeded` and `failed`.
+    + state (required, string) ... UpdateSet state. Accepted values are :  `invalid`, `test_passed`, `test_failed`.
+    + dependency_files (optional, array) ... List of dependency files, after update has been applied.
 
 + Request (application/json)
 
         {
             "state": "succeeded",
-                "dependency_files": [
-                    {
-                        "path": "Gemfile.lock",
-                        "content": "__base64_encoded_content__"
-                    }
+            "dependency_files": [
+                {
+                    "path": "Gemfile.lock",
+                    "content": "base64 content"
+                }
             ]
         }
 
