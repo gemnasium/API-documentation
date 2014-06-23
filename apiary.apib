@@ -147,6 +147,8 @@ The project synchronization proceeds in two steps:
 
 # Group Dependency files
 
+Dependency files content will **always** be base64 encoded
+
 ## GET /project/{slug}/dependency_files
 
 List the dependency files of a project
@@ -154,8 +156,8 @@ List the dependency files of a project
 + Response 200 (application/json)
 
         [
-            { "id": "1", "path": "Gemfile", "content": "Gemfile content", "sha": "Gemfile SHA-1" },
-            { "id": "2", "path": "Gemfile.lock", "content": "Gemfile.lock content", "sha": "Gemfile.lock SHA-1" }
+            { "id": "1", "path": "Gemfile", "content": "Gemfile base64 encoded content", "sha": "Gemfile SHA-1" },
+            { "id": "2", "path": "Gemfile.lock", "content": "Gemfile.lock base64 encoded content", "sha": "Gemfile.lock SHA-1" }
         ]
 
 ## POST /project/{slug}/dependency_files
@@ -171,15 +173,15 @@ The path of a dependency file is relative to its project directory. The parsing 
 + Request (application/json)
 
         [
-            { "path": "Gemfile", "content": "Gemfile content" },
-            { "path": "Gemfile.lock", "content": "Gemfile.lock content" },
+            { "path": "Gemfile", "content": "Gemfile base64 encoded content" },
+            { "path": "Gemfile.lock", "content": "Gemfile.lock base64 encoded content" },
         ]
 
 + Response 200 (application/json)
 
         {
-            "added": [{ "id": "1", "path": "Gemfile", "content": "Gemfile content", "sha": "Gemfile SHA-1" }],
-            "updated": [{ "id": "2", "path": "Gemfile.lock", "content": "Gemfile.lock content", "sha": "Gemfile.lock SHA-1" }],
+            "added": [{ "id": "1", "path": "Gemfile", "content": "Gemfile base64 encoded content", "sha": "Gemfile SHA-1" }],
+            "updated": [{ "id": "2", "path": "Gemfile.lock", "content": "Gemfile.lock base64 encoded content", "sha": "Gemfile.lock SHA-1" }],
             "unchanged": [],
             "unsupported": ["picture.jpg"]
         }
