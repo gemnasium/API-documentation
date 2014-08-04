@@ -175,7 +175,14 @@ The path of a dependency file is relative to its project directory. The parsing 
 **The files content must be base64 encoded.**
 
 + Request (application/json)
-
+    + Headers
+    
+        Content-Type: application/json
+        X-Gms-Revision: abcdef12356
+        X-Gms-Branch: master
+    
+    + Body
+    
         [
             { "path": "Gemfile", "content": "Gemfile base64 encoded content" },
             { "path": "Gemfile.lock", "content": "Gemfile.lock base64 encoded content" },
