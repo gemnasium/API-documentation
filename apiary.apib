@@ -153,7 +153,7 @@ The project synchronization proceeds in two steps:
 
 Dependency files content will **always** be base64 encoded
 
-## GET /project/{slug}/dependency_files
+## GET /projects/{slug}/dependency_files
 
 List the dependency files of a project
 
@@ -164,7 +164,7 @@ List the dependency files of a project
             { "id": "2", "path": "Gemfile.lock", "content": "Gemfile.lock base64 encoded content", "sha": "Gemfile.lock SHA-1" }
         ]
 
-## POST /project/{slug}/dependency_files
+## POST /projects/{slug}/dependency_files
 
 Add dependency files to an existing project, or update existing ones.  
 If a dependency file with the same path already exists, its content will be updated.
