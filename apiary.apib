@@ -143,9 +143,9 @@ It is possible to update the name, the description or the monitored attribute. A
 Start project synchronization
 
 The project synchronization proceeds in two steps:
-
 * it updates the dependency files when this is possible (GitHub hosted project)
 * it updates the dependencies according to the dependency files
+* This action does NOT apply to offline projects and GitLab hosted projects. Dependency files of offline and GitLab projects are pushed to Gemnasium, not pulled from the repository.
 
 + Response 204
 
