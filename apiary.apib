@@ -41,10 +41,16 @@ Authenticate a user and return her/his user API key
 
 A Gemnasium project has dependency files and it keeps track of the dependencies.
 
+A project can either be synced with a remote repository (like a GitHub repo) or made of dependency files pushed via the API. It's said to be a "synced project" or a "pushed project".
+
 Each project is identified by a unique slug. The slug can either be:
 
-* the slug of a GitHub hosted projects, like `octokit/go-octokit` or `rails/rails`
-* a random string when the project is not on GitHub
+* a combinaison of host, account name and repo name when the project is "synced"
+* a random string when the project is "pushed"
+
+For instance, the slug of a project synced with http://github.com/gemnasium/toolbelt is github.com/gemnasium/toolbelt.
+
+When not given, the host defaults to github.com. Omitting the host is now deprecated.
 
 The project slug can be found on the project settings page.
 
@@ -93,10 +99,12 @@ Return the details of the a project.
 
 Create a project
 
+This action applies to *pushed projects* only.
+
 + Parameters
     + name (string) ... Name
     + description (optional, string) ... A short description
-    + origin (optional, string) ... Where the project is hosted. It is possible to create `offline` or `gitlab` projects using the API. Other origins will be rejected. Default orgin is `offline`.
+    + origin (optional, string) ... Where the dependency files pushed via the API originate from. It can either be `offline` or `gitlab`. Default is `offline`.
 
 + Request (application/json)
 
@@ -112,10 +120,12 @@ Update a project
 
 It is possible to update the name, the description or the monitored attribute. All parameters are optional.
 
+The name and description of a *synced project* can't be updated: they always match the name and description of the repo the project is synced with.
+
 + Parameters
     + name (optional, string) ... Name
     + description (optional, string) ... A short description
-    + monitored (optional, boolean) ... Whether the project is watched by the user. The dependency files are automatically synchronized if the project is monitored and hosted on GitHub.
+    + monitored (optional, boolean) ... Whether the project is watched by the user. A *synced project* is automatically synced with its repo when it's monitored.
     
 + Request (application/json)
 
@@ -143,9 +153,10 @@ It is possible to update the name, the description or the monitored attribute. A
 Start project synchronization
 
 The project synchronization proceeds in two steps:
-* it updates the dependency files when this is possible (GitHub hosted project)
+* it updates the dependency files if the active branch has a new commit
 * it updates the dependencies according to the dependency files
-* This action does NOT apply to offline projects and GitLab hosted projects. Dependency files of offline and GitLab projects are pushed to Gemnasium, not pulled from the repository.
+
+This action applies to *synced projects* only.
 
 + Response 204
 
@@ -176,6 +187,8 @@ The path of a dependency file is relative to its project directory. The parsing 
 
 To use the auto-update feature, the revision and branch must be sent to Gemnasium prior to call auto-update.
 The headers ```X-Gms-Revision``` and ```X-Gms-Branch``` must be set in the request.
+
+This action applies to *pushed projects* only.
 
 + Request (application/json)
     + Headers
