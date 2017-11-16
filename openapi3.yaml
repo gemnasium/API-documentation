@@ -1,0 +1,798 @@
+openapi: 3.0.0
+servers:
+  - url: 'https://api.gemnasium.com/v1'
+info:
+  description: This is the Gemnasium v1 API.
+  version: 1.0.0
+  title: Gemnasium API version 1
+  termsOfService: 'https://gemnasium.com/terms/'
+  contact:
+    name: Gemnasium support
+    url: 'http://support.gemnasium.com/'
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: authentication
+    description: |
+      Each API request should be authenticated using HTTP Basic authentication
+      with 'X' as the login, and the Gemnasium user API key as the password.
+
+      The user API key can be found at the bottom of the user settings page or
+      can be requested over the API.
+  - name: project
+    description: |
+      A Gemnasium project has dependency files and it keeps track of the
+      dependencies.
+      
+      A project can either be synced with a remote repository
+      (like a GitHub repo) or made of dependency files pushed via the API. It's
+      said to be a "synced project" or a "pushed project".
+      
+      Each project is identified by a unique slug. The slug can either be:
+      
+      * a combinaison of host, account name and repo name when the project is "synced"
+      
+      * a random string when the project is "pushed"
+      
+      For instance, the slug of a project synced with http://github.com/gemnasium/toolbelt is
+      github.com/gemnasium/toolbelt.
+      
+      When not given, the host defaults to github.com. Omitting the host is now deprecated.
+      
+      The project slug can be found on the project settings page.
+  - name: dependency files
+    description: |
+      Dependency files contain the information about which dependencies a project use. They are necessary for offline projects so that Gemnasium can check its dependencies.
+      
+      Dependency files   content will always be base64 encoded
+  - name: dependency
+    description: |
+      A dependency is a reference to a software package and information on its versions in use in the project.
+  - name: dependency alert
+    description: |
+      A dependency alert is a security vulnerability concerning a dependency your project uses which leaves the project potentially vulnerable and in need of an update.
+  - name: live evaluation
+    description: |
+      **Those endpoints are reserved for Gold members only**
+      
+      The Gemnasium API is able to parse a set of dependency files without creating any project.
+      
+      The dependency file evaluation is asynchronous and proceeds in two steps:
+      
+      * post the dependency files and get a job id back
+      
+      * poll the job till it has a result
+      
+      The result of the job is similar to the description of a project (ie. it has colors, dependencies and alerts).
+      
+      **The files content must be base64 encoded.**
+  - name: auto update
+    description: |
+      *This feature is currently in beta and only available for eligible projects.*
+      
+      A Gemnasium project can be automatically tested against dependencies updates once the feature has been enabled.
+paths:
+  /login:
+    post:
+      summary: Login to the API
+      tags:
+        - authentication
+      description: Authenticate a user and return her/his user API key
+      operationId: login
+      responses:
+        '200':
+          description: successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '404':
+          description: Failed login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        description: failed login
+        required: true
+  /projects:
+    get:
+      tags:
+        - project
+      summary: List the projects the authenticated user can access to
+      description: |
+        Projects are grouped by owner accounts. The projects owned by the
+        authenticated user appear with "owned" instead of the user name.
+      operationId: ProjectList
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectOwner2List'
+    post:
+      tags:
+        - project
+      summary: Create a project
+      description: This action applies to pushed projects only.
+      operationId: ProjectCreate
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectCreateResponse'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreateRequest'
+        description: Project to create.
+        required: true
+  '/projects/{slug}':
+    get:
+      tags:
+        - project
+      summary: Return the details of the a project
+      operationId: ProjectGet
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          description: 'Slug of the project, example: username/projectname'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+    patch:
+      tags:
+        - project
+      summary: Update a project
+      description: |
+        It is possible to update the name, the description or the monitored attribute. Only the name is required.
+        
+        The name and description of a synced project can't be updated: they always match the name and description of the repo the project is synced with.
+      operationId: ProjectUpdate
+      parameters: 
+        - in: path
+          name: slug
+          required: true
+          description: 'Slug of the project, example: username/projectname'
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdateRequest'
+        description: Updated project values.
+        required: true
+      responses:
+        '200':
+          description: The updated project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+  '/projects/{slug}/sync':
+    post:
+      tags:
+        - project
+      summary: Start project synchronization
+      description: >
+        The project synchronization proceeds in two steps:
+        
+        * it updates the dependency files if the active branch has a new commit
+        
+        * it updates the dependencies according to the dependency files
+        
+        This action applies to synced projects only.
+      operationId: ProjectSync
+      parameters: 
+        - in: path
+          name: slug
+          required: true
+          description: 'Slug of the project, example: username/projectname'
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Synchronization successfully started
+  '/projects/{slug}/dependency_files':
+    get:
+      tags:
+        - dependency files
+      summary: List the dependency files of a project
+      operationId: DependencyFilesGet
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          description: 'Slug of the project, example: username/projectname'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of dependency files
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DependencyFileList'
+    post:
+      tags:
+        - dependency files
+      summary: Add dependency files to an existing project, or update existing ones.
+      description: |
+        If a dependency file with the same path already exists, its content will be updated.
+        
+        The request contains an array of dependency files where each file has a path and a content.
+        
+        The path of a dependency file is relative to its project directory. The parsing of a dependency file depends on its path (ie. the path Gemfile implies this is a Ruby Bundler dependency file, etc.).
+        
+        **The files content must be base64 encoded.**
+        
+        To use the auto-update feature, the revision and branch must be sent to Gemnasium prior to calling auto-update. The headers X-Gms-Revision and X-Gms-Branch must be set in the request.
+        
+        This action applies to pushed projects only.
+      operationId: DependencyFilePush
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          description: 'Slug of the project, example: username/projectname'
+          schema:
+            type: string
+        - in: header
+          name: X-Gms-Branch
+          description: Project Branch
+          schema:
+            type: string
+          required: true
+        - in: header
+          name: X-Gms-Revision
+          description: Project branch revision
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DependencyFilePushList'
+        description: Dependency files.
+        required: true
+      responses:
+        '200':
+          description: |
+            Dependency files push results. A map of array of dependency files with these keys:
+            
+            * "added": New dependency files that were added.
+            
+            * "updated": Dependency files that were updated.
+            
+            * "unchanged": Dependency files that didn't change.
+            
+            * "unsupported": Files that are not supported.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DependencyFilePushResult'
+  '/projects/{slug}/dependency_files/{dependency_file-id}':
+    delete:
+      tags:
+        - dependency files
+      summary: Delete a dependency file.
+      description: This action applies to pushed projects only.
+      operationId: DependencyFileDelete
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          description: 'Slug of the project, example: username/projectname'
+          schema:
+            type: string
+        - in: path
+          name: id
+          required: true
+          description: 'ID of the dependency file, as returned by the list operation'
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: |
+            Dependency files deleted successfully
+  '/projects/{slug}/dependencies':
+    get:
+      tags:
+        - dependency
+      summary: List the dependencies of a project.
+      operationId: DependencyListGet
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          description: 'Slug of the project, example: username/projectname'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of dependencies
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DependencyList'
+  '/projects/{slug}/alerts':
+    get:
+      tags:
+        - dependency alert
+      summary: List the dependencies alert of a project.
+      operationId: DependencyAlertsGet
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          description: 'Slug of the project, example: username/projectname'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of dependency alerts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DependencyAlertList'
+  '/evaluate':
+    post:
+      tags:
+        - live evaluation
+      summary: Process a set of dependency files and return a job
+      operationId: LiveEvalStart
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DependencyFilePushList'
+        description: Dependency files.
+        required: true
+      responses:
+        '200':
+          description: Successfully started live evaluation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job_id:
+                    type: integer
+  '/evaluate/{job-id}':
+    get:
+      tags:
+        - live evaluation
+      summary: Get the status of a job, and possibly its result
+      description: |
+        The job status can either be:
+        
+        * queued if the job is enqueued but not started yet
+        
+        * working if the job is under progress
+        
+        * completed when the result of the job is available
+        
+        * failed if the job has failed
+        
+        * killed if the job has been manually killed
+        
+        When completed, the job's result that includes:
+        
+        * an overall color for each environment type (runtime and development)
+        
+        * a list of dependencies; each dependency has a color, a package and a list of advisories
+      operationId: LiveEvalPoll
+      parameters:
+        - in: path
+          name: job-id
+          required: true
+          description: 'Id of the job, returned by /evaluate'
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully polled the live evaluation job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiveEvalPollResult'
+  '/projects/{slug}/branches/{branch_name}/update_sets/next':
+    post:
+      tags:
+        - auto update
+      summary: Return the next update_set available.
+      description: |
+        Return the next update_set available for the given project, on a given branch and for a specific commit. An update set is a combination of dependencies to be updated simulteanously.
+      operationId: AutoUpdateNext
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          description: 'Slug of the project, example: username/projectname'
+          schema:
+            type: string
+        - in: path
+          name: branch_name
+          required: true
+          description: 'Name of the branch to try to auto update.'
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                revision:
+                  type: string
+        description: Current revision identifier.
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AutoUpdateNextResponse'
+  '/projects/{slug}/branches/{branch_name}/update_sets/{id}':
+    patch:
+      tags:
+        - auto update
+      summary: Update an update set with test result.
+      description: |
+        Informs Gemnasium of the success of failure of an update set.
+      operationId: AutoUpdateTestResults
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          description: 'Slug of the project, example: username/projectname'
+          schema:
+            type: string
+        - in: path
+          name: branch_name
+          required: true
+          description: 'Name of the branch to try to auto update.'
+          schema:
+            type: string
+        - in: path
+          name: id
+          required: true
+          description: "ID of the update set"
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                state:
+                  type: string
+                  enum:
+                  - invalid
+                  - test_passed
+                  - test_failed
+                dependency_files:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DependencyFilePush'
+        description: Current revision identifier.
+        required: true
+      responses:
+        '200':
+          description: Information successfully sent.
+externalDocs:
+  description: Find out more about Gemnasium
+  url: 'http://gemnasium.com'
+security: 
+  - basicAuth: []
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    Advisory:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+    AutoUpdateNextResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        requirement_updates:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/RequirementUpdate'
+        version_updates:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/VersionUpdate'
+    Dependency:
+      type: object
+      properties:
+        package:
+          $ref: '#/components/schemas/Package'
+        requirement:
+          type: string
+          description: Version requirement for the package, as set in dependency files.
+        locked:
+          type: string
+          description: |
+            Version of the package that is in use in the project, as found in dependency files (e.g. Gemfile.lock).
+        type:
+          type: string
+          description: "Type of dependency (e.g. development / runtime)"
+        first_level:
+          type: boolean
+          description: Wether this is a direct dependency of the project or indirect.
+        color:
+          type: string
+          description: Status of the dependency.
+    DependencyList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Dependency'
+    DependencyAlert:
+      type: object
+      properties:
+        id:
+          type: integer
+        advisory:
+          $ref: '#/components/schemas/Advisory'
+        dependency:
+          type: object
+          properties:
+            id:
+              type: integer
+        open_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+    DependencyAlertList:
+      type: array
+      items:
+        $ref: '#/components/schemas/DependencyAlert'
+    DependencyFile:
+      type: object
+      properties:
+        id:
+          type: integer
+        path:
+          type: string
+          description: Path of the dependency file inside the project source.
+        content:
+          type: string
+          format: byte
+          description: Content of the file in base64 encoding.
+        sha:
+          type: string
+          description: SHA hash of the content of the file.
+    DependencyFileList:
+      type: array
+      items:
+        $ref: '#/components/schemas/DependencyFile'
+    DependencyFilePush:
+      type: object
+      properties:
+        path:
+          type: string
+          description: Path of the dependency file inside the project source.
+        content:
+          type: string
+          format: byte
+          description: Content of the file in base64 encoding.
+    DependencyFilePushList:
+      type: array
+      items:
+        $ref: '#/components/schemas/DependencyFilePush'        
+    DependencyFilePushResult:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/DependencyFileList'
+    LiveEvalDependency:
+      type: object
+      properties:
+        package:
+          $ref: '#/components/schemas/LiveEvalPackage'
+        requirement:
+          type: string
+          description: Version requirement for the package, as set in dependency files.
+        locked:
+          type: string
+          description: |
+            Version of the package that is in use in the project, as found in dependency files (e.g. Gemfile.lock).
+        type:
+          type: string
+          description: "Type of dependency (e.g. development / runtime)"
+        first_level:
+          type: boolean
+          description: Wether this is a direct dependency of the project or indirect.
+        color:
+          type: string
+          description: Status of the dependency.
+        advisories:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+    LiveEvalPackage:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        type:
+          type: string
+          description: "Package type, e.g. rubygem"
+    LiveEvalResult:
+      type: object
+      additionalProperties:
+        type: string
+      properties:
+        dependencies:
+          type: array
+          items:
+            $ref: "#/components/schemas/LiveEvalDependency"
+    LiveEvalPollResult:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - queued
+            - working
+            - completed
+            - failed
+            - killed
+        result:
+          $ref: '#/components/schemas/LiveEvalResult'
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    LoginResponse:
+      type: object
+      properties:
+        api_token:
+          type: string
+          description: >-
+            API authentication token, to be used in a Basic auth header (see
+            above)
+    Package:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        type:
+          type: string
+          description: "Package type, e.g. rubygem"
+        distribution:
+          type: object
+          description: Available package versions, per distribution (stable, prerelease, etc.).
+          additionalProperties:
+            type: string
+    Project:
+      type: object
+      properties:
+        slug:
+          type: string
+          description: 'Project slug, it''s identifier'
+        name:
+          type: string
+        description:
+          type: string
+        origin:
+          type: string
+          description: 'Project''s origin, exemple: github, gitlab, offline...'
+        private:
+          type: boolean
+        color:
+          type: string
+          description: 'Project''s dependency status, can be green, orange, red.'
+        monitored:
+          type: boolean
+        unmonitored_reason:
+          type: string
+    ProjectList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Project'
+    ProjectOwner2List:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/ProjectList'
+    ProjectCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        origin:
+          type: string
+          description: 'Project''s origin, exemple: github, gitlab...'
+    ProjectUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        monitored:
+          type: boolean
+          description: 'Project monitoring. Unmonitored projects don''t get their dependencies checked by Gemnasium.'
+    ProjectCreateResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        remaining_slot_count:
+          type: integer
+          description: 'Remaining slots in your account, creating projects consumes them.'
+    RequirementUpdate:
+      type: object
+      properties:
+        file:
+          type: object
+          properties:
+            path:
+              type: string
+            sha:
+              type: string
+        patch:
+          type: string
+      description: 'Describes a dependency file and the patch to apply to it'
+    VersionUpdate:
+      type: object
+      properties:
+        package:
+          type: object
+          properties:
+            type:
+              type: string
+            name:
+              type: string
+        old_requirement:
+          type: string
+        old_version:
+          type: string
+        target_version:
+          type: string
+      description: 'Describes a package dependency that needs to be changed'
+      
+      
